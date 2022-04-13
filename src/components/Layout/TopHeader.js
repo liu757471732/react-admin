@@ -34,7 +34,7 @@ export default function TopHeader() {
       <div style={{'float':'right'}}>
         <span>欢迎admin回来</span>
         <Dropdown overlay={menu}>
-            <Avatar src="https://joeschmoe.io/api/v1/random" style={{'margin-left':'14px'}}/>
+            <Avatar src="https://joeschmoe.io/api/v1/random" style={{marginLeft:'14px'}}/>
         </Dropdown>
       </div>
     </Header>
