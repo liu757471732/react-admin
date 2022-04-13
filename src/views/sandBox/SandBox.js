@@ -10,7 +10,7 @@ import NoPermission from './nopermission/Nopermission'
 import { Layout } from 'antd';
 
 //css
-import './SandBox.css'
+import './SandBox.css'  
 
 const { Content } = Layout;
 
