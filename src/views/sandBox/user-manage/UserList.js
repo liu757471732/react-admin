@@ -1,4 +1,4 @@
-import React,{useState,useEffect} from 'react'
+import React,{useState,useEffect,useRef} from 'react'
 import { Table,Button,Modal,Switch } from 'antd';
 import axios from 'axios';
 import {
@@ -6,11 +6,17 @@ import {
   EditOutlined,
   ExclamationCircleOutlined
 } from '@ant-design/icons';
-const { confirm } = Modal;
+// 组件
+import UserForm from '../../../components/user-manage/UserForm.js'
 
+const { confirm } = Modal;
 
 export default function UserList() {
   const [dataSource,setDataSource]=useState([])
+  const [isAddVisible,setIsAddVisible]=useState(false)
+  const [roleList,setRoleList]=useState([])
+  const [regionList,setRegionList]=useState([])
+  const addForm=useRef(null)
   const columns=[
     {
       title: '区域',
@@ -33,8 +39,8 @@ export default function UserList() {
     {
       title: '用户状态',
       dataIndex: 'roleState',
-      render:(roleState)=>{
-        return <Switch checked={roleState}></Switch>
+      render:(roleState,item)=>{
+        return <Switch checked={roleState} disabled={item.default}></Switch>
       }
     },
     {
@@ -42,8 +48,8 @@ export default function UserList() {
       key: 'action',
       render: (item)=>{
         return <div>
-          <Button danger shape="circle" icon={<DeleteOutlined/>} onClick={()=>confirmMethod(item)}></Button>
-           <Button type='primary' shape="circle" icon={<EditOutlined/>} ></Button>
+          <Button danger shape="circle" icon={<DeleteOutlined/>} onClick={()=>confirmMethod(item)} disabled={item.default}></Button>
+          <Button type='primary' shape="circle" icon={<EditOutlined/>} disabled={item.default}></Button>
         </div>
       }
     }
@@ -65,6 +71,9 @@ export default function UserList() {
     
   }
   
+  const addUser=()=>{
+    setIsAddVisible(true)
+  }
 
   useEffect(()=>{
     axios.get("http://localhost:8000/users?_expand=role").then((res)=>{
@@ -73,11 +82,47 @@ export default function UserList() {
     })
   },[])
 
+  useEffect(()=>{
+    axios.get("http://localhost:8000/regions").then((res)=>{
+      const list=res.data
+      setRegionList(list)
+    })
+  },[])
+
+  useEffect(()=>{
+    axios.get("http://localhost:8000/roles").then((res)=>{
+      const list=res.data
+      setRoleList(list)
+    })
+  },[])
+
   return (
     <div>
+      <Button type="primary" style={{marginBottom:"20px"}} onClick={()=>{addUser()}}>添加用户</Button>
       <Table dataSource={dataSource} columns={columns} rowKey={(item)=>item.id} pagination={{
         pageSize:5
       }}/>
+
+      {/* form表单 */}
+      <Modal
+        visible={isAddVisible}
+        title="添加用户"
+        okText="确定"
+        cancelText="取消"
+        onCancel={()=>{
+          setIsAddVisible(false)
+        }}
+        onOk={() => {
+          addForm.current.validateFields().then((res)=>{
+            console.log(res)
+          }).catch((error)=>{
+            console.log(error)
+          })
+          // addForm.current
+        }}
+      >
+        <UserForm ref={addForm} regionList={regionList} roleList={roleList}></UserForm>
+      </Modal>
     </div>
   )
 }
