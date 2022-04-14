@@ -1,5 +1,5 @@
 import React,{useState,useEffect} from 'react'
-import { Table,Tag,Button,Modal } from 'antd';
+import { Table,Tag,Button,Modal,Popover,Switch } from 'antd';
 import axios from 'axios';
 import {
   DeleteOutlined,
@@ -11,7 +11,7 @@ const { confirm } = Modal;
 
 export default function RightList() {
   const [dataSource,setDataSource]=useState([])
-  const [columns]=useState([
+  const columns=[
     {
       title: 'ID',
       dataIndex: 'id',
@@ -39,20 +39,24 @@ export default function RightList() {
       render: (item)=>{
         return <div>
           <Button danger shape="circle" icon={<DeleteOutlined/>} onClick={()=>confirmMethod(item)}></Button>
-          <Button type='primary' shape="circle" icon={<EditOutlined/>}></Button>
+          <Popover trigger={item.pagepermisson===undefined?'':'click'} content={
+            <div style={{textAlign:'center'}}>
+              <Switch checked={item.pagepermisson} onChange={()=>switchMethod(item)}></Switch>
+            </div>
+          } title="配置项">
+           <Button type='primary' shape="circle" icon={<EditOutlined/>} disabled={item.pagepermisson===undefined} style={{margin:'0 5px'}}></Button>
+          </Popover>
         </div>
       }
     }
-  ])
+  ]
 
   const confirmMethod=(item)=>{
     confirm({
       title: '你确定要删除吗?',
       icon: <ExclamationCircleOutlined />,
       onOk() {
-        console.log(dataSource)  
         deleteMethods(item)
-        // console.log('OK');
       },
       onCancel() {
         console.log('Cancel');
@@ -60,13 +64,36 @@ export default function RightList() {
     });
   }
   const deleteMethods=(item)=>{
-    setDataSource(dataSource.filter(data=>data.id!==item.id))
+    if(item.grade===1){
+      setDataSource(dataSource.filter(data=>data.id!==item.id))
+      axios.delete(`http://localhost:8000/rights/${item.id}`)
+    }else{
+      let list=dataSource.filter(data=>data.id===item.rightId)
+      list[0].children=list[0].children.filter(data=>data.id!==item.id)
+      setDataSource([...dataSource])
+      axios.delete(`http://localhost:8000/children/${item.id}`)
+    }
   }
   
+  const switchMethod=(item)=>{
+    console.log(item)
+    item.pagepermisson=item.pagepermisson===1?0:1
+    setDataSource([...dataSource])
+    if(item.grade===1){
+      axios.patch(`http://localhost:8000/rights/${item.id}`,{pagepermisson:item.pagepermisson})
+    }else{
+      axios.patch(`http://localhost:8000/children/${item.id}`,{pagepermisson:item.pagepermisson})
+    }
+  }
+
   useEffect(()=>{
     axios.get("http://localhost:8000/rights?_embed=children").then((res)=>{
       const list=res.data
-      list[0].children=""
+      list.forEach((item)=>{
+        if(item.children.length===0){
+          item.children=""
+        }
+      })
       setDataSource(list)
     })
   },[])
