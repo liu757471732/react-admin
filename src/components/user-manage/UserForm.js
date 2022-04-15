@@ -1,10 +1,15 @@
-import React, { forwardRef,useState } from 'react'
+import React, { forwardRef,useState,useEffect } from 'react'
 import { Form,Input,Select } from 'antd';
 const { Option } = Select;
 
  const UserForm= forwardRef((props,ref) => {
+  const [isDisabled,setIsDisabled]=useState(false)
   const {roleList,regionList}=props
-  const {isDisabled,setIsDisabled}=useState(false)
+
+  useEffect(()=>{
+    setIsDisabled(props.isUpdateDisabled)
+  },[props.isUpdateDisabled])
+
   return (
     <Form
         ref={ref}
@@ -27,7 +32,7 @@ const { Option } = Select;
       <Form.Item 
         name="region"
         label="区域"
-        rules={[{required:true,message:'Please input the title of collection!'}]}
+        rules={isDisabled?[]:[{required:true,message:'Please input the title of collection!'}]}
         >
           <Select placeholder="select your gender" disabled={isDisabled}>
             {
@@ -42,8 +47,10 @@ const { Option } = Select;
         >
           <Select placeholder="select your gender" onChange={(value)=>{
             if(value === 1){
-              console.log(123)
               setIsDisabled(true)
+              ref.current.setFieldsValue({
+                region:''
+              })
             }else{
               setIsDisabled(false)
             }

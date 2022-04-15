@@ -1,5 +1,6 @@
 import React,{useState} from 'react'
 import { Layout,Dropdown,Menu,Avatar } from 'antd';
+import { useHistory } from 'react-router-dom';
 import {
   MenuUnfoldOutlined,
   MenuFoldOutlined,
@@ -12,13 +13,16 @@ export default function TopHeader() {
   const changeCollapsed=()=>{
     setCollapsed(!collapsed)
   }
-
+  const history=useHistory()
   const menu = (
     <Menu>
       <Menu.Item>
         超级管理员
       </Menu.Item>
-      <Menu.Item danger>退出</Menu.Item>
+      <Menu.Item danger onClick={()=>{
+        localStorage.removeItem('token')
+        history.push("/login")
+      }}>退出</Menu.Item>
     </Menu>
   )
 
